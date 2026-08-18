@@ -44,6 +44,13 @@ export const RULES = [
     good: '實測發現的問題',
   },
   {
+    id: 'ke-classifier', register: 'any', name: '「顆」拿來數抽象物',
+    why: '「這顆 bug」「一顆服務」是工程圈黑話;顆是給圓的實體用的(蘋果、按鈕、鏡頭)。抽象物講「這個 bug」「這支服務」。',
+    re: /[一這那幾兩三每]\s*顆\s*(?:bug|issue|pr|api|commit|問題|功能|需求|服務|專案|系統|錯誤|修正|任務|網站|站)/gi,
+    bad: '抱歉這顆 bug',
+    good: '我是一顆很努力的按鈕',
+  },
+  {
     id: 'metaphor-as-noun', register: 'any', name: '把比喻直接當名詞用',
     why: '「每一刀」「最漂亮的一刀」是腦子裡的比喻,讀者看不懂。改「每一個分工」。',
     re: /[每這那]一刀|最漂亮的一(?:刀|招)/g,
