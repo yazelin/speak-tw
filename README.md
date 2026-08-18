@@ -91,7 +91,7 @@ node test/rules.test.mjs
 
 規則只跑 5 條：`fake-contrast`、`drama-word`、`metaphor-as-noun`、`organic-metaphor`、`banned-word`。對話不是對外 prose，全形標點與破折號那幾條不該套；AI 味那幾條在對話裡的誤判率未知，先不放。
 
-hook 撈不到 transcript、或格式改了，就安靜退出——工具壞掉不該打斷工作。
+hook 撈不到 transcript、或格式改了，就安靜退出，工具壞掉不該打斷工作。
 
 ## 跟 speak-human-tw 的差別
 
