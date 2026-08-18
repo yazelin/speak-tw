@@ -1,0 +1,112 @@
+#!/usr/bin/env node
+/* speak-tw — 講人話檢查。純靜態掃描,零相依,任何 agent 都能跑(它只是一支會回傳退出碼的程式)。
+
+   用法:
+     speak-tw <檔案或目錄...>        預設掃 .md/.html/.txt
+     speak-tw --public <路徑...>     連對外文字專用的規則一起套(全形標點、破折號、禁用詞)
+     speak-tw --stdin --public       從 stdin 讀一段文字檢查
+     speak-tw --list                 列出所有規則
+     speak-tw --json                 機器讀的輸出
+   有問題就 exit 1。
+
+   放行:在那一行加 speak-tw-ok(HTML 用 <!-- speak-tw-ok -->)。
+   要放行就要明講,不能默默通過。
+
+   設定檔 .speak-tw.json(放在被掃的目錄):
+     { "public": ["index.html", "README.md"], "off": ["academic-filler"] }
+   public 列到的檔案自動套 public 規則。 */
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { join, resolve, relative, extname } from 'node:path';
+import { RULES } from '../rules.mjs';
+
+const argv = process.argv.slice(2);
+const flag = (n) => argv.includes(n);
+const paths = argv.filter((a) => !a.startsWith('--'));
+const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'vendor']);
+
+if (flag('--list')) {
+  for (const r of RULES) console.log(r.id.padEnd(18) + '[' + r.register + '] ' + r.name + '\n    ' + r.why);
+  process.exit(0);
+}
+
+/* 只檢查「人會讀到的字」:程式碼、網址、HTML 標籤裡的東西不算。
+   位置要對得上原文,所以用等長的空白換掉,不是刪掉。 */
+function stripCode(text, ext) {
+  const blank = (m) => m.replace(/[^\n]/g, ' ');
+  let s = text;
+  if (ext === '.md') {
+    s = s.replace(/```[\s\S]*?```/g, blank).replace(/`[^`\n]*`/g, blank)
+         .replace(/^ {4}\S[^\n]*$/gm, blank);
+  }
+  if (ext === '.html') {
+    s = s.replace(/<(script|style|pre|code)[\s\S]*?<\/\1>/gi, blank)
+         .replace(/<[^>]+>/g, blank);
+  }
+  return s.replace(/https?:\/\/\S+/g, blank);
+}
+
+function collect(p) {
+  const out = [];
+  const st = statSync(p);
+  if (st.isFile()) { out.push(p); return out; }
+  (function walk(d) {
+    for (const n of readdirSync(d)) {
+      if (SKIP.has(n) || n.startsWith('.')) continue;
+      const q = join(d, n); const s = statSync(q);
+      if (s.isDirectory()) walk(q);
+      else if (/\.(md|html|txt)$/.test(n) && s.size < 2_000_000) out.push(q);
+    }
+  })(p);
+  return out;
+}
+
+function configFor(root) {
+  const f = join(root, '.speak-tw.json');
+  try { return existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {}; } catch (e) { return {}; }
+}
+
+const targets = (paths.length ? paths : ['.']).map((p) => resolve(p));
+const root = statSync(targets[0]).isDirectory() ? targets[0] : resolve(targets[0], '..');
+const cfg = configFor(root);
+const off = new Set(cfg.off || []);
+const publicList = (cfg.public || []).map((p) => resolve(root, p));
+
+const hits = [];
+const files = flag('--stdin') ? ['<stdin>'] : [...new Set(targets.flatMap(collect))];
+
+for (const f of files) {
+  const text = f === '<stdin>' ? readFileSync(0, 'utf8') : readFileSync(f, 'utf8');
+  const ext = f === '<stdin>' ? '.md' : extname(f);
+  const isPublic = flag('--public') || publicList.includes(resolve(f));
+  const clean = stripCode(text, ext);
+  const lines = text.split('\n');
+  const starts = []; let acc = 0;
+  for (const l of lines) { starts.push(acc); acc += l.length + 1; }
+  for (const r of RULES) {
+    if (off.has(r.id)) continue;
+    if (r.register === 'public' && !isPublic) continue;
+    for (const m of clean.matchAll(r.re)) {
+      let ln = starts.findIndex((s, i) => m.index >= s && (i === starts.length - 1 || m.index < starts[i + 1]));
+      if (ln < 0) ln = 0;
+      if (/speak-tw-ok/.test(lines[ln])) continue;
+      hits.push({ file: f, line: ln + 1, rule: r.id, name: r.name, why: r.why, text: m[0].trim().slice(0, 60) });
+    }
+  }
+}
+
+if (flag('--json')) { console.log(JSON.stringify(hits, null, 1)); process.exit(hits.length ? 1 : 0); }
+
+const byRule = {};
+for (const h of hits) (byRule[h.rule] ||= []).push(h);
+for (const [id, hs] of Object.entries(byRule)) {
+  console.log('\n' + id + '　' + hs[0].name + '（' + hs.length + ' 處）');
+  console.log('  ' + hs[0].why);
+  for (const h of hs.slice(0, 8)) {
+    const loc = h.file === '<stdin>' ? '' : relative(process.cwd(), h.file) + ':' + h.line + '  ';
+    console.log('    ' + loc + h.text);
+  }
+  if (hs.length > 8) console.log('    …還有 ' + (hs.length - 8) + ' 處');
+}
+console.log('\n掃了 ' + files.length + ' 個檔案，' + hits.length + ' 處要改');
+if (hits.length) console.log('確定某一處是刻意的，就在那一行加 speak-tw-ok');
+process.exit(hits.length ? 1 : 0);
