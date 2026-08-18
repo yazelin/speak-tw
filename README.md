@@ -77,7 +77,7 @@ node test/rules.test.mjs
 
 ## 掛成 hook：連對話也檢查
 
-`hook/stop-lint.mjs` 是 Claude Code 的 `Stop` hook——回覆結束時檢查那則訊息。
+`hook/stop-lint.mjs` 是 Claude Code 的 `Stop` hook，在回覆結束時檢查那則訊息。
 
 ```json
 { "hooks": { "Stop": [ { "hooks": [
@@ -97,7 +97,7 @@ hook 撈不到 transcript、或格式改了，就安靜退出，工具壞掉不�
 
 [speak-human-tw](https://github.com/Raymondhou0917/speak-human-tw)（MIT）是同一個問題的 prompt 解法：38 種 AI 寫作痕跡、60 多條中國用語對照，由 agent 讀進去之後改寫，會先列問題等你同意。規則覆蓋面比這裡廣很多，值得裝。
 
-這支走的是另一條路：**規則寫成 regex，用退出碼講話**。差別在執行方式——不需要 agent 記得要用它，也不需要模型判斷，放進 CI 就是硬性的。兩個可以並用：那邊負責改寫建議，這邊負責交稿前的最後一道閘。 <!-- speak-tw-ok 這一行在示範規則本身 -->
+這支走的是另一條路：**規則寫成 regex，用退出碼講話**。差別在執行方式：不需要 agent 記得要用它，也不需要模型判斷，放進 CI 就是硬性的。兩個可以並用：那邊負責改寫建議，這邊負責交稿前的最後一道閘。 <!-- speak-tw-ok 這一行在示範規則本身 -->
 
 ## 授權
 
