@@ -44,7 +44,34 @@ else:
     print(f'  已加入 Stop hook（原有的 {len(stop)-1} 組沒動）')
 PY
 
-# 3. 自我驗證
+# 3. Codex(如果裝了):hooks.json 同格式,外加 AGENTS.md 一行
+if [ -d "$HOME/.codex" ]; then
+  python3 - "$HERE" <<'PY2'
+import json, os, sys
+here = sys.argv[1]
+p = os.path.expanduser('~/.codex/hooks.json')
+if os.path.exists(p):
+    try: d = json.load(open(p))
+    except Exception: d = None
+    if d is not None:
+        h = d.get('hooks', d)
+        stop = h.setdefault('Stop', [])
+        if any('stop-lint' in c.get('command','') for m in stop for c in m.get('hooks',[])):
+            print('  已設定: Codex Stop hook')
+        else:
+            stop.append({'hooks': [{'type':'command','command': f'node {here}/hook/stop-lint.mjs'}]})
+            json.dump(d, open(p,'w'), ensure_ascii=False, indent=2)
+            print('  已加入 Codex Stop hook  ← 要在 Codex 互動介面打 /hooks 審核並 trust 一次才會生效')
+a = os.path.expanduser('~/.codex/AGENTS.md')
+line = f'對外中文寫完交稿前跑:`{here}/bin/speak-tw --public <路徑>`,exit 1 就照它列的改。'
+s = open(a).read() if os.path.exists(a) else ''
+if 'speak-tw' not in s:
+    open(a,'w').write(s.rstrip('\n') + '\n' + line + '\n')
+    print('  已加一行到 ~/.codex/AGENTS.md')
+PY2
+fi
+
+# 4. 自我驗證
 if node "$HERE/test/rules.test.mjs" >/dev/null 2>&1; then
   say "  規則測試通過"
 else
@@ -56,5 +83,6 @@ say "好了。用法:"
 say "  $HERE/bin/speak-tw --public <檔案或目錄>"
 say "  在被檢查的 repo 放 .speak-tw.json 設定哪些算對外、哪些排除"
 say ""
-say "Codex 或其他 agent:沒有技能清單,直接把這行講給它——"
+say "Codex:hook 加好了,但要在互動介面打 /hooks 審核 trust 一次才會跑(改過 hook 內容也要重 trust)。"
+say "其他沒有技能清單的 agent,直接把這行講給它:"
 say "  「交稿前跑 $HERE/bin/speak-tw --public <路徑>,exit 1 就照它列的改」"

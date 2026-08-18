@@ -88,7 +88,17 @@ node test/rules.test.mjs
 ] } ] } }
 ```
 
-加進**既有的** Stop 陣列，不要蓋掉別的 hook。
+加進**既有的** Stop 陣列，不要蓋掉別的 hook。`install.sh` 會自己做這件事。
+
+### Codex
+
+`install.sh` 也會寫 `~/.codex/hooks.json`（格式跟 Claude 一樣）並在 `~/.codex/AGENTS.md` 加一行。
+
+**但 Codex 的 hook 預設不信任、會被跳過**，要在互動介面打 `/hooks` 審核並 trust 一次才會跑；而且 trust 是綁 hook 內容的雜湊，改過內容要重 trust。
+
+hook 的 payload 欄位名各家不同：Claude 給 `transcript_path`，Codex 這邊沒有樣本可對（這台的 `hooks.json` 從沒設過任何 hook），所以 `stop-lint.mjs` 多試了幾個欄位名，最後退回「`~/.codex/sessions` 裡兩分鐘內的最新 jsonl」。**Codex 這條路還沒實機驗過**，先靠 AGENTS.md 那一行墊著。
+
+輸出兩種格式都給：Claude 讀 `systemMessage`，Codex 讀 `hookSpecificOutput.additionalContext`。
 
 **只警告，不阻擋。**誤判時擋住回覆會很煩，而且誤判率還沒量過。跑一陣子確認夠低，再考慮改成阻擋。
 
