@@ -13,8 +13,9 @@
    要放行就要明講,不能默默通過。
 
    設定檔 .speak-tw.json(放在被掃的目錄):
-     { "public": ["index.html", "README.md"], "off": ["academic-filler"] }
-   public 列到的檔案自動套 public 規則。 */
+     { "public": ["index.html"], "off": ["academic-filler"], "exclude": ["data/", "assets/"] }
+   public 列到的檔案自動套 public 規則;exclude 列到的路徑整個跳過
+   (產出物、別人的文字、錄下來的資料 —— 那些不是你寫的,不該被改)。 */
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, resolve, relative, extname } from 'node:path';
 import { RULES } from '../rules.mjs';
@@ -70,9 +71,11 @@ const root = statSync(targets[0]).isDirectory() ? targets[0] : resolve(targets[0
 const cfg = configFor(root);
 const off = new Set(cfg.off || []);
 const publicList = (cfg.public || []).map((p) => resolve(root, p));
+const excludes = (cfg.exclude || []).map((p) => resolve(root, p));
+const excluded = (f) => excludes.some((e) => resolve(f) === e || resolve(f).startsWith(e.replace(/\/?$/, '/')));
 
 const hits = [];
-const files = flag('--stdin') ? ['<stdin>'] : [...new Set(targets.flatMap(collect))];
+const files = flag('--stdin') ? ['<stdin>'] : [...new Set(targets.flatMap(collect))].filter((f) => !excluded(f));
 
 for (const f of files) {
   const text = f === '<stdin>' ? readFileSync(0, 'utf8') : readFileSync(f, 'utf8');
