@@ -5,6 +5,8 @@ description: 講人話檢查。用程式掃出中文寫作的老毛病（假對�
 
 # speak-tw：講人話
 
+換一台機器要先接上：`git clone https://github.com/yazelin/speak-tw ~/speak-tw && bash ~/speak-tw/install.sh`
+
 寫完對外文字（README 中文段、網頁文案、blog、貼文）之後，**跑這支再交**。
 
 ```bash
