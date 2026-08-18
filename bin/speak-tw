@@ -5,6 +5,8 @@
      speak-tw <檔案或目錄...>        預設掃 .md/.html/.txt
      speak-tw --public <路徑...>     連對外文字專用的規則一起套(全形標點、破折號、禁用詞)
      speak-tw --stdin --public       從 stdin 讀一段文字檢查
+     speak-tw --rules a,b,c          只跑指定的規則(給 hook 用,對話不需要全套)
+     speak-tw --quiet                只回退出碼與一行摘要
      speak-tw --list                 列出所有規則
      speak-tw --json                 機器讀的輸出
    有問題就 exit 1。
@@ -23,6 +25,7 @@ import { RULES } from '../rules.mjs';
 const argv = process.argv.slice(2);
 const flag = (n) => argv.includes(n);
 const paths = argv.filter((a) => !a.startsWith('--'));
+const only = (argv.find((a) => a.startsWith('--rules=')) || '').slice(8).split(',').filter(Boolean);
 const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'vendor']);
 
 if (flag('--list')) {
@@ -87,6 +90,7 @@ for (const f of files) {
   for (const l of lines) { starts.push(acc); acc += l.length + 1; }
   for (const r of RULES) {
     if (off.has(r.id)) continue;
+    if (only.length && !only.includes(r.id)) continue;
     if (r.register === 'public' && !isPublic) continue;
     for (const m of clean.matchAll(r.re)) {
       let ln = starts.findIndex((s, i) => m.index >= s && (i === starts.length - 1 || m.index < starts[i + 1]));
@@ -99,6 +103,11 @@ for (const f of files) {
 
 if (flag('--json')) { console.log(JSON.stringify(hits, null, 1)); process.exit(hits.length ? 1 : 0); }
 
+if (flag('--quiet')) {
+  const ids = [...new Set(hits.map((h) => h.rule))];
+  if (hits.length) console.log(hits.length + ' 處：' + ids.join('、'));
+  process.exit(hits.length ? 1 : 0);
+}
 const byRule = {};
 for (const h of hits) (byRule[h.rule] ||= []).push(h);
 for (const [id, hs] of Object.entries(byRule)) {

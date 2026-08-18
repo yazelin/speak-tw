@@ -75,6 +75,24 @@ node test/rules.test.mjs
 
 測試會逐條驗：抓得到壞例、放得過好例、**而且不會咬到別條規則的好例**。少了這一關，規則會為了多抓一點越寫越兇，誤傷多了就會有人把整支工具關掉。
 
+## 掛成 hook：連對話也檢查
+
+`hook/stop-lint.mjs` 是 Claude Code 的 `Stop` hook——回覆結束時檢查那則訊息。
+
+```json
+{ "hooks": { "Stop": [ { "hooks": [
+  { "type": "command", "command": "node /home/ct/speak-tw/hook/stop-lint.mjs" }
+] } ] } }
+```
+
+加進**既有的** Stop 陣列，不要蓋掉別的 hook。
+
+**只警告，不阻擋。**誤判時擋住回覆會很煩，而且誤判率還沒量過。跑一陣子確認夠低，再考慮改成阻擋。
+
+規則只跑 5 條：`fake-contrast`、`drama-word`、`metaphor-as-noun`、`organic-metaphor`、`banned-word`。對話不是對外 prose，全形標點與破折號那幾條不該套；AI 味那幾條在對話裡的誤判率未知，先不放。
+
+hook 撈不到 transcript、或格式改了，就安靜退出——工具壞掉不該打斷工作。
+
 ## 跟 speak-human-tw 的差別
 
 [speak-human-tw](https://github.com/Raymondhou0917/speak-human-tw)（MIT）是同一個問題的 prompt 解法：38 種 AI 寫作痕跡、60 多條中國用語對照，由 agent 讀進去之後改寫，會先列問題等你同意。規則覆蓋面比這裡廣很多，值得裝。
