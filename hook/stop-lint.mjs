@@ -14,7 +14,7 @@ import { readFileSync } from 'node:fs';
 import * as fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
-const RULES = 'fake-contrast,drama-word,metaphor-as-noun,organic-metaphor,banned-word';
+const RULES = 'fake-contrast,drama-word,metaphor-as-noun,organic-metaphor,banned-word,luo-wording,ke-classifier';
 const BIN = new URL('../bin/speak-tw', import.meta.url).pathname;
 
 let input = '';

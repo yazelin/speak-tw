@@ -102,7 +102,7 @@ hook 的 payload 欄位名各家不同：Claude 給 `transcript_path`，Codex �
 
 **只警告，不阻擋。**誤判時擋住回覆會很煩，而且誤判率還沒量過。跑一陣子確認夠低，再考慮改成阻擋。
 
-規則只跑 5 條：`fake-contrast`、`drama-word`、`metaphor-as-noun`、`organic-metaphor`、`banned-word`。對話不是對外 prose，全形標點與破折號那幾條不該套；AI 味那幾條在對話裡的誤判率未知，先不放。
+規則只跑這幾條：`fake-contrast`、`drama-word`、`metaphor-as-noun`、`organic-metaphor`、`banned-word`、`luo-wording`、`ke-classifier`。挑的標準是**字面特徵明確、誤判率低**。對話不是對外 prose，全形標點與破折號那幾條不該套；AI 味那幾條在對話裡的誤判率未知，先不放。
 
 hook 撈不到 transcript、或格式改了，就安靜退出，工具壞掉不該打斷工作。
 
