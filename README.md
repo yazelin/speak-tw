@@ -55,10 +55,10 @@ speak-tw --json                 機器讀的輸出
 
 ## 規則
 
-17 條，分三類：
+19 條，分三類：
 
 **被指正過的實際案例**（這份清單的價值所在）
-`fake-contrast` 不是 X，是 Y ｜ `organic-metaphor` 長出／長成 ｜ `banned-word` 接住／身段 ｜ `homework-tone` 改出得意的回來讓我看看 ｜ `drama-word` 對自己不利／管不住 ｜ `metaphor-as-noun` 每一刀 ｜ `true-x-not-y` 真正的 X 不是… <!-- speak-tw-ok 這一行在示範規則本身 -->
+`fake-contrast` 不是 X，是 Y ｜ `organic-metaphor` 長出／長成 ｜ `banned-word` 接住／身段 ｜ `luo-wording` 落檔／落下來 ｜ `homework-tone` 改出得意的回來讓我看看 ｜ `drama-word` 對自己不利／管不住 ｜ `metaphor-as-noun` 每一刀 ｜ `ke-classifier` 這顆 bug ｜ `true-x-not-y` 真正的 X 不是… <!-- speak-tw-ok 這一行在示範規則本身 -->
 
 **標點與字元**
 `em-dash` 破折號 ｜ `halfwidth-punct` 中文間的半形標點 ｜ `emoji` ｜ `simplified` 簡體字 ｜ `dollar-escape` Markdown 裡跳脫的 $
