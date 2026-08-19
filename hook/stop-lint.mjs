@@ -59,6 +59,13 @@ function lastAssistantText(path) {
 const text = lastAssistantText(tp);
 if (!text || text.length < 30) process.exit(0);
 
+/* 談論這支工具本身時不要檢查。
+   2026-08-19 第一次真的觸發就是誤報:我在回覆裡列規則清單(「落檔／落下來」「這顆 bug」),
+   被當成使用那些詞。檔案可以加 speak-tw-ok,對話沒地方加。
+   代價:一則同時談 speak-tw 又真的犯規的訊息會被放過。可接受——
+   誤報會讓人關掉整個提醒,漏報只是少提醒一次。 */
+if (/speak-tw|rules\.mjs/.test(text)) process.exit(0);
+
 let out = '';
 try {
   execFileSync('node', [BIN, '--stdin', '--public', `--rules=${RULES}`], { input: text, encoding: 'utf8' });

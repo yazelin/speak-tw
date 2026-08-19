@@ -106,6 +106,8 @@ hook 的 payload 欄位名各家不同：Claude 給 `transcript_path`，Codex �
 
 hook 撈不到 transcript、或格式改了，就安靜退出，工具壞掉不該打斷工作。
 
+**談論這支工具本身時不檢查。**第一次真的觸發就是誤報：回覆裡在列規則清單（「落檔／落下來」「這顆 bug」），被當成使用那些詞。檔案可以加 `speak-tw-ok`，對話沒地方加，所以訊息裡提到 `speak-tw` 或 `rules.mjs` 就整則跳過。代價是「同時談這支工具又真的犯規」的訊息會漏掉——可接受，**誤報會讓人關掉整個提醒，漏報只是少提醒一次**。
+
 ## 跟 speak-human-tw 的差別
 
 [speak-human-tw](https://github.com/Raymondhou0917/speak-human-tw)（MIT）是同一個問題的 prompt 解法：38 種 AI 寫作痕跡、60 多條中國用語對照，由 agent 讀進去之後改寫，會先列問題等你同意。規則覆蓋面比這裡廣很多，值得裝。
