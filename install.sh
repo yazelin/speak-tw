@@ -24,7 +24,18 @@ else
   ln -s "$HERE" "$LINK" && say "  已連結: $LINK → $HERE"
 fi
 
-# 2. Stop hook(只警告不阻擋)
+# 2. 放進 PATH,才能直接打 speak-tw(不用寫完整路徑)
+if [ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin"; then
+  ln -sf "$HERE/bin/speak-tw" "$HOME/.local/bin/speak-tw"
+  if echo "$PATH" | tr ':' '\n' | grep -qx "$HOME/.local/bin"; then
+    say "  已放進 PATH: speak-tw"
+  else
+    say "  已連結到 ~/.local/bin,但它不在 PATH —— 把這行加進 ~/.bashrc:"
+    say '    export PATH="$HOME/.local/bin:$PATH"'
+  fi
+fi
+
+# 3. Stop hook(只警告不阻擋)
 python3 - "$HERE" <<'PY'
 import json, os, sys
 here = sys.argv[1]
@@ -44,7 +55,7 @@ else:
     print(f'  已加入 Stop hook（原有的 {len(stop)-1} 組沒動）')
 PY
 
-# 3. Codex(如果裝了):hooks.json 同格式,外加 AGENTS.md 一行
+# 4. Codex(如果裝了):hooks.json 同格式,外加 AGENTS.md 一行
 if [ -d "$HOME/.codex" ]; then
   python3 - "$HERE" <<'PY2'
 import json, os, sys
@@ -71,7 +82,7 @@ if 'speak-tw' not in s:
 PY2
 fi
 
-# 4. 自我驗證
+# 5. 自我驗證
 if node "$HERE/test/rules.test.mjs" >/dev/null 2>&1; then
   say "  規則測試通過"
 else
@@ -80,9 +91,9 @@ fi
 
 say ""
 say "好了。用法:"
-say "  $HERE/bin/speak-tw --public <檔案或目錄>"
+say "  speak-tw --public <檔案或目錄>"
 say "  在被檢查的 repo 放 .speak-tw.json 設定哪些算對外、哪些排除"
 say ""
 say "Codex:hook 加好了,但要在互動介面打 /hooks 審核 trust 一次才會跑(改過 hook 內容也要重 trust)。"
 say "其他沒有技能清單的 agent,直接把這行講給它:"
-say "  「交稿前跑 $HERE/bin/speak-tw --public <路徑>,exit 1 就照它列的改」"
+say "  「交稿前跑 speak-tw --public <路徑>(或 $HERE/bin/speak-tw),exit 1 就照它列的改」"
