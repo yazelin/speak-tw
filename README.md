@@ -10,6 +10,8 @@ speak-tw --public README.md index.html
 
 **只 clone 是不夠的。**那樣只有檔案：agent 不會知道它存在，hook 也不會跑。`install.sh` 才會把它接上這台機器。換一台機器、或要給 Codex 用，都要先跑它。
 
+Windows 用 Git Bash 跑同樣兩行就好。`install.sh` 本身也只需要 node，不需要 python。
+
 有問題 exit 1：
 
 ```

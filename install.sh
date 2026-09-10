@@ -36,50 +36,56 @@ if [ -d "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin"; then
 fi
 
 # 3. Stop hook(只警告不阻擋)
-python3 - "$HERE" <<'PY'
-import json, os, sys
-here = sys.argv[1]
-p = os.path.expanduser('~/.claude/settings.json')
-cmd = f'node {here}/hook/stop-lint.mjs'
-d = {}
-if os.path.exists(p):
-    try: d = json.load(open(p))
-    except Exception:
-        print('  ✗ settings.json 讀不動,沒有動它'); raise SystemExit
-stop = d.setdefault('hooks', {}).setdefault('Stop', [])
-if any('stop-lint.mjs' in c.get('command', '') for m in stop for c in m.get('hooks', [])):
-    print('  已設定: Stop hook')
-else:
-    stop.append({'hooks': [{'type': 'command', 'command': cmd}]})
-    json.dump(d, open(p, 'w'), ensure_ascii=False, indent=2)
-    print(f'  已加入 Stop hook（原有的 {len(stop)-1} 組沒動）')
-PY
+# 用 node 不用 python3:node 本來就是這支工具的必要條件,而 Git Bash 沒有內建 python3。
+node -e '
+const fs = require("fs"), os = require("os"), path = require("path");
+const here = process.argv[1];
+const p = path.join(os.homedir(), ".claude", "settings.json");
+const cmd = `node ${here}/hook/stop-lint.mjs`;
+let d = {};
+if (fs.existsSync(p)) {
+  try { d = JSON.parse(fs.readFileSync(p, "utf8")); }
+  catch { console.log("  \u2717 settings.json 讀不動,沒有動它"); process.exit(0); }
+}
+d.hooks ??= {}; d.hooks.Stop ??= [];
+const stop = d.hooks.Stop;
+const has = stop.some(m => (m.hooks || []).some(c => (c.command || "").includes("stop-lint.mjs")));
+if (has) { console.log("  已設定: Stop hook"); process.exit(0); }
+stop.push({ hooks: [{ type: "command", command: cmd }] });
+fs.mkdirSync(path.dirname(p), { recursive: true });
+fs.writeFileSync(p, JSON.stringify(d, null, 2));
+console.log(`  已加入 Stop hook（原有的 ${stop.length - 1} 組沒動）`);
+' "$HERE"
 
 # 4. Codex(如果裝了):hooks.json 同格式,外加 AGENTS.md 一行
 if [ -d "$HOME/.codex" ]; then
-  python3 - "$HERE" <<'PY2'
-import json, os, sys
-here = sys.argv[1]
-p = os.path.expanduser('~/.codex/hooks.json')
-if os.path.exists(p):
-    try: d = json.load(open(p))
-    except Exception: d = None
-    if d is not None:
-        h = d.get('hooks', d)
-        stop = h.setdefault('Stop', [])
-        if any('stop-lint' in c.get('command','') for m in stop for c in m.get('hooks',[])):
-            print('  已設定: Codex Stop hook')
-        else:
-            stop.append({'hooks': [{'type':'command','command': f'node {here}/hook/stop-lint.mjs'}]})
-            json.dump(d, open(p,'w'), ensure_ascii=False, indent=2)
-            print('  已加入 Codex Stop hook  ← 要在 Codex 互動介面打 /hooks 審核並 trust 一次才會生效')
-a = os.path.expanduser('~/.codex/AGENTS.md')
-line = f'對外中文寫完交稿前跑:`{here}/bin/speak-tw --public <路徑>`,exit 1 就照它列的改。'
-s = open(a).read() if os.path.exists(a) else ''
-if 'speak-tw' not in s:
-    open(a,'w').write(s.rstrip('\n') + '\n' + line + '\n')
-    print('  已加一行到 ~/.codex/AGENTS.md')
-PY2
+  node -e '
+const fs = require("fs"), os = require("os"), path = require("path");
+const here = process.argv[1];
+const p = path.join(os.homedir(), ".codex", "hooks.json");
+if (fs.existsSync(p)) {
+  let d = null;
+  try { d = JSON.parse(fs.readFileSync(p, "utf8")); } catch {}
+  if (d) {
+    const h = d.hooks || d;
+    h.Stop ??= [];
+    const has = h.Stop.some(m => (m.hooks || []).some(c => (c.command || "").includes("stop-lint")));
+    if (has) console.log("  已設定: Codex Stop hook");
+    else {
+      h.Stop.push({ hooks: [{ type: "command", command: `node ${here}/hook/stop-lint.mjs` }] });
+      fs.writeFileSync(p, JSON.stringify(d, null, 2));
+      console.log("  已加入 Codex Stop hook  ← 要在 Codex 互動介面打 /hooks 審核並 trust 一次才會生效");
+    }
+  }
+}
+const a = path.join(os.homedir(), ".codex", "AGENTS.md");
+const line = `對外中文寫完交稿前跑:\`${here}/bin/speak-tw --public <路徑>\`,exit 1 就照它列的改。`;
+const cur = fs.existsSync(a) ? fs.readFileSync(a, "utf8") : "";
+if (!cur.includes("speak-tw")) {
+  fs.writeFileSync(a, cur.replace(/\n+$/, "") + "\n" + line + "\n");
+  console.log("  已加一行到 ~/.codex/AGENTS.md");
+}
+' "$HERE"
 fi
 
 # 5. 自我驗證
