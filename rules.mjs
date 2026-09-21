@@ -6,6 +6,31 @@
      any    —— 任何地方都算數
      public —— 只在對外文字算數(README 中文段、網頁文案、blog、貼文);
                內部的 commit、NEXT.md、spec 不套 */
+/* 簡體字表原本是手寫的 130 字,漏一個字就靜默放行(2026-09-21 實際發生:Larch 插件
+   manifest 裡的「换」跑了檢查器還是過)。改成反過來問:Big5 編得出來的就是正體,
+   編不出來的 CJK 就當簡體。Big5 字表用 TextDecoder 現場解出來,不進相依、不進原始碼。 */
+const BIG5_MISSING = '鿿堃喆坂媠嫲'; // Big5 漏收但正體在用:U+9FFF(正規表示式常拿來當端點)、人名用字、台語客語用字
+const SIMPLIFIED = (() => {
+  const bytes = [];
+  for (let lead = 0x81; lead <= 0xfe; lead++)
+    for (let trail = 0x40; trail <= 0xfe; trail++) bytes.push(lead, trail, 0x0a);
+  const traditional = new Set(
+    new TextDecoder('big5').decode(new Uint8Array(bytes)).split('\n').filter((c) => c.length === 1));
+  for (const c of BIG5_MISSING) traditional.add(c);
+  const hex = (cp) => '\\u' + cp.toString(16).padStart(4, '0');
+  const parts = [];
+  let start = null;
+  for (let cp = 0x4e00; cp <= 0xa000; cp++) {
+    const simp = cp < 0xa000 && !traditional.has(String.fromCodePoint(cp));
+    if (simp && start === null) start = cp;
+    if (!simp && start !== null) {
+      parts.push(start === cp - 1 ? hex(start) : hex(start) + '-' + hex(cp - 1));
+      start = null;
+    }
+  }
+  return new RegExp('[' + parts.join('') + ']', 'g');
+})();
+
 export const RULES = [
   // ── 一、被指正過的實際案例(這份清單的價值所在) ──
   {
@@ -116,12 +141,10 @@ export const RULES = [
   },
   {
     id: 'simplified', register: 'any', name: '簡體字',
-    why: '一律正體中文。',
-    // 只放「簡體才有」的字。之前放了台/准/后 —— 那三個正體中文也在用(一台、不准、皇后),
-    // 掃自己的頁面時 12 處全是誤報。字表寧可少,不可誤傷。
-    re: /[这么们个来对说时会没经过还种样发点当电脑网页图书专业务实验证据历确级别标资软条获艺国与东车长门问间马鸟鱼龙见贝风飞齐亚儿广义华备复够关观规汉号欢环极计记讲认让设谁数谈团万为无习应银优员圆远运张织众]/g,
-    bad: '这个功能',
-    good: '這個功能',
+    why: '一律正體中文。Big5 編得出來的算正體,編不出來的 CJK 當簡體;真的要用的冷字那一行加 speak-tw-ok。',
+    re: SIMPLIFIED,
+    bad: '这个功能换成自己的網址',
+    good: '這個功能換成自己的網址',
   },
   {
     id: 'china-term', register: 'any', name: '中國用語',
