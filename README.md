@@ -57,10 +57,10 @@ speak-tw --json                 機器讀的輸出
 
 ## 規則
 
-31 條，分三類：
+32 條，分三類：
 
 **被指正過的實際案例**（這份清單的價值所在）
-`fake-contrast` 不是 X，是 Y ｜ `never-punchline` 他從來沒有 Y 過。 ｜ `organic-metaphor` 長出／長成 ｜ `banned-word` 接住 ｜ `luo-wording` 落檔／落下來 ｜ `homework-tone` 改出得意的回來讓我看看 ｜ `drama-word` 對自己不利／管不住 ｜ `metaphor-as-noun` 每一刀 ｜ `ke-classifier` 這顆 bug ｜ `true-x-not-y` 真正的 X 不是… ｜ `surprise-success` 還真的做出來了 ｜ `hype-speed` 一秒看出／秒懂 ｜ `self-importance` 真正想講的 ｜ `no-hands` 我沒有動手 ｜ `chai-kan` 拆兩個來看 ｜ `old-line-reuse` 照搬舊文的梗 ｜ `reveal-colon` 背後是…： ｜ `flow-jargon` 資料怎麼走 ｜ `realness-claim` 都是真的發生過的 ｜ `easy-promise` 也沒關係／就能做一個自己的 <!-- speak-tw-ok 這一行在示範規則本身 -->
+`fake-contrast` 不是 X，是 Y ｜ `never-punchline` 他從來沒有 Y 過。 ｜ `organic-metaphor` 長出／長成 ｜ `banned-word` 接住 ｜ `luo-wording` 落檔／落下來 ｜ `homework-tone` 改出得意的回來讓我看看 ｜ `drama-word` 對自己不利／管不住 ｜ `metaphor-as-noun` 每一刀 ｜ `ke-classifier` 這顆 bug ｜ `true-x-not-y` 真正的 X 不是… ｜ `surprise-success` 還真的做出來了 ｜ `hype-speed` 一秒看出／秒懂 ｜ `self-importance` 真正想講的 ｜ `no-hands` 我沒有動手 ｜ `chai-kan` 拆兩個來看 ｜ `old-line-reuse` 照搬舊文的梗 ｜ `reveal-colon` 背後是…： ｜ `flow-jargon` 資料怎麼走 ｜ `realness-claim` 都是真的發生過的 ｜ `easy-promise` 也沒關係／就能做一個自己的 ｜ `pronoun-person` 年輕的那個問 <!-- speak-tw-ok 這一行在示範規則本身 -->
 
 抓不到的：整篇「冒號＋清單」一段接一段的範本結構、「站沒斷」這種電報式省略。這兩種是結構問題，規則看不出來，寫完要自己唸一遍。
 
